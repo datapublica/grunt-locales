@@ -56,7 +56,11 @@ module.exports = function (grunt) {
                 return str.replace(/"/g, '""');
             },
             csvKeyLabel: 'ID',
-            csvExtraFields: ['files']
+            csvExtraFields: ['files'],
+            textualHtmlAttributes: {
+                '*': ['title'],
+                input: ['placeholder']
+            }
         });
         if (!this.options.locales.length) {
             return grunt.fail.warn('No locales defined');
@@ -221,7 +225,6 @@ module.exports = function (grunt) {
         parseHTMLFile: function (file, str, messages, callback) {
             var that = this,
                 attrs = this.options.localizeAttributes,
-                localizeHtmlAttributes = this.options.localizeHtmlAttributes,
                 defaultAttr = attrs[0],
                 defaultAttrSelector = '[' + defaultAttr + '],[data-' + defaultAttr + ']',
                 cheerio = require('cheerio'),
@@ -258,21 +261,27 @@ module.exports = function (grunt) {
                         });
                     }
 
-                    var htmlAttributes = localizeHtmlAttributes && localizeHtmlAttributes[element.name];
-                    grunt.log.writeln("html attributes " + htmlAttributes);
-
-                    htmlAttributes && htmlAttributes.forEach(function(name) {
-                        value = $element.attr(name);
-                        grunt.log.writeln(name + "=" + value);
-                        if (value && value.length) {
-                            key = value;
-                            that.extendMessages(messages, key, {
-                                value: value,
-                                files: [file]
-                            });
+                    if (that.options.localizeTextualHtmlAttributes) {
+                        var attributes = [];
+                        for (var tag in that.options.textualHtmlAttributes) {
+                            if (tag === "*") {
+                                attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
+                            }
+                            if (element.name == tag) {
+                                attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
+                            }
                         }
-                    });
-
+                        attributes.forEach(function(attr) {
+                            value = $element.attr(attr);
+                            if (value && value.length) {
+                                key = value;
+                                that.extendMessages(messages, key, {
+                                    value: value,
+                                    files: [file]
+                                });
+                            }
+                        });
+                    }
                 });
 
             });

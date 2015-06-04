@@ -36,13 +36,19 @@
   "Say something!": {
     "value": "Sag etwas!",
     "files": [
-      "test/fixtures/templates/placeholder.html"
+      "test/fixtures/templates/attributes.html"
     ]
   },
   "Trickery: '\"\\": {
     "value": "Trickery: '\"\\",
     "files": [
       "test/fixtures/templates/profile.html"
+    ]
+  },
+  "text input": {
+    "value": "Texteingabe",
+    "files": [
+      "test/fixtures/templates/attributes.html"
     ]
   }
 }

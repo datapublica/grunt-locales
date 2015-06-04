@@ -61,9 +61,7 @@ module.exports = function (grunt) {
                     'test/fixtures/messages2.json'
                 ],
                 localizeAttributes: ['localize', 'localize-title'],
-                localizeHtmlAttributes: {
-                    'input': ['placeholder']
-                }
+                localizeTextualHtmlAttributes: true
             },
             update: {
                 src: [

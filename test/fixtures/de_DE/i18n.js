@@ -25,4 +25,6 @@ i18n["Oranges"] = "Orangen";
 
 i18n["Say something!"] = "Sag etwas!";
 
+i18n["text input"] = "Texteingabe";
+
 }());

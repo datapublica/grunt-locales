@@ -60,7 +60,10 @@ module.exports = function (grunt) {
                     'test/fixtures/messages.json',
                     'test/fixtures/messages2.json'
                 ],
-                localizeAttributes: ['localize', 'localize-title']
+                localizeAttributes: ['localize', 'localize-title'],
+                localizeHtmlAttributes: {
+                    'input': ['placeholder']
+                }
             },
             update: {
                 src: [

@@ -8,4 +8,5 @@
 "First name & last name","First name & last name","test/fixtures/templates/post.html"
 "Hello {name}!","Hello {name}!","test/fixtures/scripts/profile.js,test/fixtures/templates/profile.html"
 "Oranges","Oranges",""
+"Say something!","Say something!","test/fixtures/templates/placeholder.html"
 "Trickery: '""\","Trickery: '""\","test/fixtures/templates/profile.html"

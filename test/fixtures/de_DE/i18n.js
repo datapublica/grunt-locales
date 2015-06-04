@@ -23,4 +23,6 @@ i18n["Hello {name}!"] = function(d){return "Hello "+v(d,"name")+"!"};
 
 i18n["Oranges"] = "Orangen";
 
+i18n["Say something!"] = "Sag etwas!";
+
 }());

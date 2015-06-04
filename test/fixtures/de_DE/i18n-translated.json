@@ -33,6 +33,12 @@
     "value": "Orangen",
     "files": []
   },
+  "Say something!": {
+    "value": "Sag etwas!",
+    "files": [
+      "test/fixtures/templates/placeholder.html"
+    ]
+  },
   "Trickery: '\"\\": {
     "value": "Trickery: '\"\\",
     "files": [

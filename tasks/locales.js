@@ -221,6 +221,7 @@ module.exports = function (grunt) {
         parseHTMLFile: function (file, str, messages, callback) {
             var that = this,
                 attrs = this.options.localizeAttributes,
+                localizeHtmlAttributes = this.options.localizeHtmlAttributes,
                 defaultAttr = attrs[0],
                 defaultAttrSelector = '[' + defaultAttr + '],[data-' + defaultAttr + ']',
                 cheerio = require('cheerio'),
@@ -256,7 +257,24 @@ module.exports = function (grunt) {
                             files: [file]
                         });
                     }
+
+                    var htmlAttributes = localizeHtmlAttributes && localizeHtmlAttributes[element.name];
+                    grunt.log.writeln("html attributes " + htmlAttributes);
+
+                    htmlAttributes && htmlAttributes.forEach(function(name) {
+                        value = $element.attr(name);
+                        grunt.log.writeln(name + "=" + value);
+                        if (value && value.length) {
+                            key = value;
+                            that.extendMessages(messages, key, {
+                                value: value,
+                                files: [file]
+                            });
+                        }
+                    });
+
                 });
+
             });
             callback.call(that);
         },

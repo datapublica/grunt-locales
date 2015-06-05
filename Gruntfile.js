@@ -81,6 +81,10 @@ module.exports = function (grunt) {
             'import': {
                 src: 'test/fixtures/**/i18n-translated.csv',
                 dest: 'tmp/{locale}/i18n-import.json'
+            },
+            compare: {
+                reference: 'test/fixtures/en_US/i18n.json',
+                src: 'test/fixtures/**/i18n-translated.json'
             }
         },
 

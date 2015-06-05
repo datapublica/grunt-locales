@@ -282,7 +282,7 @@ module.exports = function (grunt) {
                                 attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
                             }
                         }
-                        attributes.forEach(function(attr) {
+                        attributes.forEach(function (attr) {
                             value = $element.attr(attr);
                             if (value && value.length) {
                                 key = value;
@@ -720,8 +720,47 @@ module.exports = function (grunt) {
                         }
                     });
             });
-        }
+        },
 
+        compare: function () {
+            var that = this,
+                referenceMessages = grunt.file.readJSON(that.task.data.reference),
+                referenceLocale = that.getLocaleFromPath(that.task.data.reference);
+
+            grunt.log.writeln("reference locale: " + referenceLocale);
+            this.getSourceFiles().forEach(function (file) {
+                var locale = that.getLocaleFromPath(file);
+                if (locale !== referenceLocale) {
+                    var messages = grunt.file.readJSON(file);
+                    var similarMessages = [], missingMessages = [];
+                    for (var msg in referenceMessages) {
+                        if (messages[msg] == null) {
+                            missingMessages.push(referenceMessages[msg]);
+                        } else if (messages[msg].value === referenceMessages[msg].value) {
+                            similarMessages.push(messages[msg]);
+                        }
+                    }
+
+                    if (similarMessages.length) {
+                        grunt.log.writeln(similarMessages.length + " unchanged (and possibly untranslated) localized resources for " + locale.cyan);
+                        similarMessages.forEach(function (msg) {
+                            grunt.log.writeln("    " + msg.value);
+                        })
+                    } else {
+                        grunt.log.writeln("All messages appear to have been translated for " + locale.cyan);
+                    }
+
+                    if (missingMessages.length) {
+                        grunt.log.writeln(similarMessages.length + " missing localized resources for " + locale.cyan);
+                        similarMessages.forEach(function (msg) {
+                            grunt.log.writeln("    " + msg.value);
+                        })
+                    } else {
+                        grunt.log.writeln("All messages appear to have been generated for " + locale.cyan);
+                    }
+                }
+            });
+        }
     });
 
 };

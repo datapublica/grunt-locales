@@ -241,8 +241,18 @@ module.exports = function (grunt) {
                     if (value && value != "") {
                         // Decode the entities of the attribute value
                         // (cheerio default behavior):
+                        value = that.decodeEntities(value);
                         key = value;
-                        value = $element.html();
+
+                        if (that.options.preserveInnerHTMLForKey) {
+                            /*
+                             * change from default behavior : when a localize key is used, set value to the content
+                             * of the element in order to provide a reference to the translator
+                             */
+                            var content = $element.html(); // sanitize?
+                            value = (content && content != "") ? content : value;
+                        }
+
                     } else if (attr === defaultAttr && $element.is(defaultAttrSelector)) {
                         // Retrieve the element content:
                         value = $element.html();

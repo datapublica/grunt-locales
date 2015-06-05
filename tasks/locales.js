@@ -350,7 +350,7 @@ module.exports = function (grunt) {
 
         parseSourceFile: function (file, messages, callback) {
             var that = this;
-            require('fs').readFile(file, function (err, str) {
+            require('graceful-fs').readFile(file, function (err, str) {
                 if (err) {
                     grunt.log.error(err);
                     return callback.call(that);

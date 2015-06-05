@@ -238,11 +238,11 @@ module.exports = function (grunt) {
                         $decode,
                         key,
                         sanitizedData;
-                    if (value) {
+                    if (value && value != "") {
                         // Decode the entities of the attribute value
                         // (cheerio default behavior):
-                        value = that.decodeEntities(value);
                         key = value;
+                        value = $element.html();
                     } else if (attr === defaultAttr && $element.is(defaultAttrSelector)) {
                         // Retrieve the element content:
                         value = $element.html();
@@ -255,6 +255,7 @@ module.exports = function (grunt) {
                         }
                     }
                     if (value) {
+                        //grunt.log.writeln("innerhtml:" + key + "=" + value);
                         that.extendMessages(messages, key, {
                             value: value,
                             files: [file]
@@ -271,10 +272,12 @@ module.exports = function (grunt) {
                                 attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
                             }
                         }
+                        grunt.log.writeln("attributes:" + attributes.length);
                         attributes.forEach(function(attr) {
                             value = $element.attr(attr);
                             if (value && value.length) {
                                 key = value;
+                                //grunt.log.writeln("attribute:" + key + "=" + value);
                                 that.extendMessages(messages, key, {
                                     value: value,
                                     files: [file]

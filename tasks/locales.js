@@ -272,7 +272,6 @@ module.exports = function (grunt) {
                                 attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
                             }
                         }
-                        grunt.log.writeln("attributes:" + attributes.length);
                         attributes.forEach(function(attr) {
                             value = $element.attr(attr);
                             if (value && value.length) {

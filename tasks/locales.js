@@ -58,8 +58,7 @@ module.exports = function (grunt) {
             csvKeyLabel: 'ID',
             csvExtraFields: ['files'],
             textualHtmlAttributes: {
-                '*': ['title'],
-                input: ['placeholder']
+                '*': ['title', 'placeholder', 'tooltip']
             }
         });
         if (!this.options.locales.length) {
@@ -140,11 +139,15 @@ module.exports = function (grunt) {
             if (escapeKey) {
                 key = this.jsEscape(key);
             }
+
             content = String(content);
+            /* removing because this strips all angular attributes (non-data-)
             content = sanitizer.sanitize(
                 (htmlmin && minify(content, htmlmin)) || content,
                 sanitizeUrlCallback
             );
+             */
+            content = (htmlmin && minify(content, htmlmin)) || content;
             return {
                 key: key,
                 content: content
@@ -241,7 +244,9 @@ module.exports = function (grunt) {
                     if (value && value != "") {
                         // Decode the entities of the attribute value
                         // (cheerio default behavior):
+                        //grunt.log.writeln("before decode : " + value);
                         value = that.decodeEntities(value);
+                        //grunt.log.writeln("after decode : " + value);
                         key = value;
 
                         if (that.options.preserveInnerHTMLForKey) {
@@ -250,12 +255,27 @@ module.exports = function (grunt) {
                              * of the element in order to provide a reference to the translator
                              */
                             var content = $element.html(); // sanitize?
-                            value = (content && content != "") ? content : value;
+                            if (content && content != "") {
+                                try {
+                                    sanitizedData = that.sanitize(value, (content && content != "") ? content : value);
+                                    value = sanitizedData.content;
+                                    key = sanitizedData.key;
+                                } catch (e) {
+                                    return that.logError(e, value, null, file);
+                                }
+                            } else {
+                                value = null;
+                            }
                         }
 
                     } else if (attr === defaultAttr && $element.is(defaultAttrSelector)) {
                         // Retrieve the element content:
                         value = $element.html();
+                        //grunt.log.writeln("innerHTML before: " + value);
+                        if (that.options.normalizeSpaces) {
+                            value = value && value.replace(/[\s\t]+/g, " ").replace(/^\s/, "").replace(/\s$/, "")
+                        }
+
                         try {
                             sanitizedData = that.sanitize(value, value);
                             value = sanitizedData.content;
@@ -263,9 +283,10 @@ module.exports = function (grunt) {
                         } catch (e) {
                             return that.logError(e, value, null, file);
                         }
+
                     }
                     if (value) {
-                        //grunt.log.writeln("innerhtml:" + key + "=" + value);
+                        //grunt.log.writeln("innerhtml after:" + key + "=" + value);
                         that.extendMessages(messages, key, {
                             value: value,
                             files: [file]
@@ -724,6 +745,7 @@ module.exports = function (grunt) {
 
         compare: function () {
             var that = this,
+                ignores = this.task.data.ignores && grunt.file.readJSON(this.task.data.ignores),
                 referenceMessages = grunt.file.readJSON(that.task.data.reference),
                 referenceLocale = that.getLocaleFromPath(that.task.data.reference);
 
@@ -737,27 +759,34 @@ module.exports = function (grunt) {
                         if (messages[msg] == null) {
                             missingMessages.push(referenceMessages[msg]);
                         } else if (messages[msg].value === referenceMessages[msg].value) {
-                            similarMessages.push(messages[msg]);
+                            var igno = ignores[msg.toLowerCase()];
+                            if (igno && igno.indexOf(locale) >= 0) {
+                            } else {
+                                similarMessages.push(messages[msg]);
+                            }
                         }
                     }
 
+                    grunt.log.writeln();
                     if (similarMessages.length) {
                         grunt.log.writeln(similarMessages.length + " unchanged (and possibly untranslated) localized resources for " + locale.cyan);
                         similarMessages.forEach(function (msg) {
-                            grunt.log.writeln("    " + msg.value);
+                            grunt.log.writeln("    " + msg.value.cyan);
                         })
                     } else {
-                        grunt.log.writeln("All messages appear to have been translated for " + locale.cyan);
+                        grunt.log.writeln("All messages appear to have been translated for " + locale.bold);
                     }
 
+                    grunt.log.writeln();
                     if (missingMessages.length) {
                         grunt.log.writeln(similarMessages.length + " missing localized resources for " + locale.cyan);
                         similarMessages.forEach(function (msg) {
                             grunt.log.writeln("    " + msg.value);
                         })
                     } else {
-                        grunt.log.writeln("All messages appear to have been generated for " + locale.cyan);
+                        grunt.log.writeln("All messages appear to have been generated for " + locale.bold);
                     }
+                    grunt.log.writeln();
                 }
             });
         }

@@ -15,6 +15,7 @@
     'use strict';
 
     var grunt = require('grunt');
+    var _locales = ['en_US', 'de_DE'];
 
     exports.locales = {
 
@@ -76,6 +77,7 @@
         },
 
         'import': function (test) {
+            grunt.log.writeln("locales:import test");
             test.expect(2);
             var actual = grunt.file.read('tmp/en_US/i18n-import.json').replace(/\r/g, ""),
                 expected = grunt.file.read('test/fixtures/en_US/i18n-translated.json').replace(/\r/g, "");
@@ -91,6 +93,28 @@
                 expected,
                 'Should import CSV locale file to JSON locale files.'
             );
+            test.done();
+        },
+
+        localize: function (test) {
+            grunt.log.writeln("locales:localize test");
+            test.expect(6);
+            _locales.forEach(function (locale) {
+                grunt.file.expand({
+                    cwd: 'test/fixtures/' + locale + "/"
+                }, ["*-translated.html"]).forEach(function (file) {
+                    grunt.log.writeln("checking file " + file);
+                    var actual = grunt.file.read('tmp/' + locale + "/" + file.replace(/\-translated/, "")).replace(/\r/g, ""),
+                        expected = grunt.file.read('test/fixtures/' + locale + '/' + file).replace(/\r/g, "");
+
+                    test.equal(
+                        actual,
+                        expected,
+                        'Should localize HTML file ' + file + ' in locale ' + locale
+                    );
+
+                });
+            });
             test.done();
         }
 

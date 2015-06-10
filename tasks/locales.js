@@ -56,10 +56,7 @@ module.exports = function (grunt) {
                 return str.replace(/"/g, '""');
             },
             csvKeyLabel: 'ID',
-            csvExtraFields: ['files'],
-            textualHtmlAttributes: {
-                '*': ['title', 'placeholder', 'tooltip']
-            }
+            csvExtraFields: ['files']
         });
         if (!this.options.locales.length) {
             return grunt.fail.warn('No locales defined');
@@ -140,7 +137,12 @@ module.exports = function (grunt) {
                 key = this.jsEscape(key);
             }
 
+            if (this.options.normalizeSpaces) {
+                key = key && key.replace(/[\s\t]+/g, " ").replace(/^\s/, "").replace(/\s$/, "");
+            }
+
             content = String(content);
+
             /* removing because this strips all angular attributes (non-data-)
             content = sanitizer.sanitize(
                 (htmlmin && minify(content, htmlmin)) || content,
@@ -148,6 +150,10 @@ module.exports = function (grunt) {
             );
              */
             content = (htmlmin && minify(content, htmlmin)) || content;
+            if (this.options.normalizeSpaces) {
+                content = content && content.replace(/[\s\t]+/g, " ").replace(/^\s/, "").replace(/\s$/, "");
+            }
+
             return {
                 key: key,
                 content: content
@@ -160,17 +166,13 @@ module.exports = function (grunt) {
                 .text();
         },
 
-        getAttributesSelector: function () {
-            if (!this.attributesSelector) {
-                var attrs = this.options.localizeAttributes,
-                    items = [];
-                attrs.forEach(function (attr) {
-                    items.push('[' + attr + ']');
-                    items.push('[data-' + attr + ']');
-                });
-                this.attributesSelector = items.join(',');
-            }
-            return this.attributesSelector;
+        getLocalizationAttributes: function (type) {
+            type = type ? ("-" + type) : "";
+            return this.options.localizeAttributes.reduce(function(items, attr) {
+                items.push(attr + type);
+                items.push('data-' + attr + type);
+                return items;
+            }, []);
         },
 
         extendMessages: function (messages, key, obj, update) {
@@ -225,29 +227,89 @@ module.exports = function (grunt) {
                 .attr('title');
         },
 
+        createKeyFromContent: function($element) {
+            var s = String($element.html());
+            if (this.options.normalizeSpaces) {
+                s = s && s.replace(/[\s\t]+/g, " ").replace(/^\s/, "").replace(/\s$/, "");
+            }
+            return require('sanitizer').sanitize(s);
+        },
+
+        localizeHTML: function(content, translations, callback) {
+            var $ = require('cheerio').load(content, {decodeEntities: false}),
+                that = this;
+
+            this.getLocalizationAttributes().forEach(function (attr) {
+                $("[" + attr + "]").each(function (index, element) {
+                    var $element = $(element);
+
+                    var key = $element.attr(attr) || $element.data(attr);
+                    if (!key || key === "") {
+                        key = that.createKeyFromContent($element);
+                    }
+
+                    var translation = translations[key];
+                    if (typeof translation === 'string') {
+                        $element.html(translation);
+                        $element.removeAttr(attr);
+                    } else if (typeof translation === 'function') {
+                        // cannot be done statically - leave alone
+                    } else {
+                        $element.html(key);
+                        $element.removeAttr(attr);
+                    }
+                });
+            });
+
+            this.getLocalizationAttributes("attributes").forEach(function(attr) {
+                $("[" + attr + "]").each(function (index, element) {
+                    var $element = $(element),
+                        retain = false,
+                        attributes = ($element.attr(attr) || $element.data(attr) || "").split(",");
+
+                    attributes.forEach(function (attribute) {
+                        var value = $element.attr(attribute);
+                        if (value && value.length) {
+                            var translation = translations[value];
+                            if (typeof translation === 'string') {
+                                // todo sanitize translation
+                                $element.attr(attribute, translation);
+                            } else if (typeof translation === 'function') {
+                                retain = true;
+                            }
+                        }
+                    });
+
+                    if (!retain) $element.removeAttr(attr);
+                });
+            });
+
+            callback($.html());
+        },
+
         parseHTMLFile: function (file, str, messages, callback) {
             var that = this,
                 attrs = this.options.localizeAttributes,
                 defaultAttr = attrs[0],
                 defaultAttrSelector = '[' + defaultAttr + '],[data-' + defaultAttr + ']',
-                cheerio = require('cheerio'),
                 // Don't decode entities, as this has the side effect
                 // of turning all non-ascii characters into entities:
-                $ = cheerio.load(str, {decodeEntities: false});
-            $(this.getAttributesSelector()).each(function (index, element) {
-                attrs.forEach(function (attr) {
+                $ = require('cheerio').load(str, {decodeEntities: false});
+
+            this.getLocalizationAttributes().forEach(function (attr) {
+                $('[' + attr + ']').each(function (index, element) {
                     var $element = $(element),
-                        value = $element.attr(attr) || $element.data(attr),
-                        $decode,
-                        key,
+                        key = $element.attr(attr) || $element.data(attr),
+                        value,
                         sanitizedData;
-                    if (value && value != "") {
+                    grunt.log.writeln(attr + " - " + key);
+                    if (key && key !== "") {
                         // Decode the entities of the attribute value
                         // (cheerio default behavior):
                         //grunt.log.writeln("before decode : " + value);
-                        value = that.decodeEntities(value);
+                        key = that.decodeEntities(key);
                         //grunt.log.writeln("after decode : " + value);
-                        key = value;
+                        value = key;
 
                         if (that.options.preserveInnerHTMLForKey) {
                             /*
@@ -255,9 +317,9 @@ module.exports = function (grunt) {
                              * of the element in order to provide a reference to the translator
                              */
                             var content = $element.html(); // sanitize?
-                            if (content && content != "") {
+                            if (content && content !== "") {
                                 try {
-                                    sanitizedData = that.sanitize(value, (content && content != "") ? content : value);
+                                    sanitizedData = that.sanitize(value, content);
                                     value = sanitizedData.content;
                                     key = sanitizedData.key;
                                 } catch (e) {
@@ -268,56 +330,48 @@ module.exports = function (grunt) {
                             }
                         }
 
-                    } else if (attr === defaultAttr && $element.is(defaultAttrSelector)) {
+                    } else { // no 'localize' attribute value; use content
                         // Retrieve the element content:
-                        value = $element.html();
-                        //grunt.log.writeln("innerHTML before: " + value);
-                        if (that.options.normalizeSpaces) {
-                            value = value && value.replace(/[\s\t]+/g, " ").replace(/^\s/, "").replace(/\s$/, "")
-                        }
+                        key = that.createKeyFromContent($element);
 
                         try {
-                            sanitizedData = that.sanitize(value, value);
+                            sanitizedData = that.sanitize(key, key);
                             value = sanitizedData.content;
                             key = sanitizedData.key;
                         } catch (e) {
-                            return that.logError(e, value, null, file);
+                            return that.logError(e, key, null, file);
                         }
 
                     }
                     if (value) {
-                        //grunt.log.writeln("innerhtml after:" + key + "=" + value);
                         that.extendMessages(messages, key, {
                             value: value,
                             files: [file]
                         });
                     }
-
-                    if (that.options.localizeTextualHtmlAttributes) {
-                        var attributes = [];
-                        for (var tag in that.options.textualHtmlAttributes) {
-                            if (tag === "*") {
-                                attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
-                            }
-                            if (element.name == tag) {
-                                attributes.push.apply(attributes, that.options.textualHtmlAttributes[tag]);
-                            }
-                        }
-                        attributes.forEach(function (attr) {
-                            value = $element.attr(attr);
-                            if (value && value.length) {
-                                key = value;
-                                //grunt.log.writeln("attribute:" + key + "=" + value);
-                                that.extendMessages(messages, key, {
-                                    value: value,
-                                    files: [file]
-                                });
-                            }
-                        });
-                    }
                 });
-
             });
+
+            // record attributes to localize
+            this.getLocalizationAttributes("attributes").forEach(function (attr) {
+                $('[' + attr + ']').each(function (index, element) {
+                    var $element = $(element),
+                        attributes = ($element.attr(attr) || $element.data(attr) || "").split(",");
+
+                    attributes.forEach(function (attr) {
+                        var value = $element.attr(attr);
+                        if (value && value.length) {
+                            var key = value;
+                            //grunt.log.writeln("attribute:" + key + "=" + value);
+                            that.extendMessages(messages, key, {
+                                value: value,
+                                files: [file]
+                            });
+                        }
+                    });
+                });
+            });
+
             callback.call(that);
         },
 
@@ -743,6 +797,43 @@ module.exports = function (grunt) {
             });
         },
 
+        localize: function () {
+            var that = this,
+                path = require('path');
+
+            this.options.locales.forEach(function(locale) {
+                grunt.log.writeln("Starting HTML localization for locale " + locale.cyan);
+
+                var script = grunt.file.read(that.task.data.translations.replace(that.options.localePlaceholder, locale));
+                var window = {};
+                /* jshint ignore:start */
+                eval(script);
+                /* jshint ignore:end */
+
+                // do the replacements
+                that.task.files.forEach(function (filePair) {
+                    var dest = filePair.dest.replace(that.options.localePlaceholder, locale);
+                    filePair.src.forEach(function (src) {
+                        var out = dest;
+                        if (/\/$/.test(dest)) {
+                            out = (filePair.expand) ? path.join(dest, src) : path.join(dest, path.basename(src));
+                        }
+                        //grunt.log.writeln("Before: " + src + " ==> " + out);
+                        that.localizeHTML(grunt.file.read(src), window.i18n, function(modifiedContent) {
+                            //grunt.log.writeln(src + " ==> " + out);
+                            grunt.file.write(out, modifiedContent);
+                            grunt.log.writeln("Localized: " + src.cyan + " -> " + out.cyan);
+                        });
+                    });
+                });
+
+                grunt.log.writeln("Finished HTML localization for locale " + locale.cyan);
+            });
+
+            this.done();
+        },
+
+
         compare: function () {
             var that = this,
                 ignores = this.task.data.ignores && grunt.file.readJSON(this.task.data.ignores),
@@ -772,7 +863,7 @@ module.exports = function (grunt) {
                         grunt.log.writeln(similarMessages.length + " unchanged (and possibly untranslated) localized resources for " + locale.cyan);
                         similarMessages.forEach(function (msg) {
                             grunt.log.writeln("    " + msg.value.cyan);
-                        })
+                        });
                     } else {
                         grunt.log.writeln("All messages appear to have been translated for " + locale.bold);
                     }
@@ -782,7 +873,7 @@ module.exports = function (grunt) {
                         grunt.log.writeln(similarMessages.length + " missing localized resources for " + locale.cyan);
                         similarMessages.forEach(function (msg) {
                             grunt.log.writeln("    " + msg.value);
-                        })
+                        });
                     } else {
                         grunt.log.writeln("All messages appear to have been generated for " + locale.bold);
                     }

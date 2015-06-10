@@ -1,6 +1,8 @@
 "ID","de_DE"
 "Apples","Äpfel"
 "Bananas","Bananen"
+"Click to accept invitation","Klicken Sie auf Einladung annehmen","test/fixtures/templates/attributes.html"
+"I'm in","Ich bin dabei","test/fixtures/templates/attributes.html"
 "Oranges","Orangen"
 "Say something!","Sag etwas!"
 "First name & last name","Vorname & Nachname"

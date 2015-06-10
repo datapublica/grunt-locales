@@ -17,9 +17,13 @@ i18n["Apples"] = "Äpfel";
 
 i18n["Bananas"] = "Bananen";
 
+i18n["Click to accept invitation"] = "Klicken Sie auf Einladung annehmen";
+
 i18n["First name \x26 last name"] = "Vorname \x26 Nachname";
 
 i18n["Hello {name}!"] = function(d){return "Hello "+v(d,"name")+"!"};
+
+i18n["I\x27m in"] = "Ich bin dabei";
 
 i18n["Oranges"] = "Orangen";
 

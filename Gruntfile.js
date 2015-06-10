@@ -60,8 +60,7 @@ module.exports = function (grunt) {
                     'test/fixtures/messages.json',
                     'test/fixtures/messages2.json'
                 ],
-                localizeAttributes: ['localize', 'localize-title'],
-                localizeTextualHtmlAttributes: true
+                localizeAttributes: ['localize', 'localize-title']
             },
             update: {
                 src: [
@@ -81,6 +80,11 @@ module.exports = function (grunt) {
             'import': {
                 src: 'test/fixtures/**/i18n-translated.csv',
                 dest: 'tmp/{locale}/i18n-import.json'
+            },
+            localize: {
+                translations: "test/fixtures/{locale}/i18n.js",
+                src: ['test/fixtures/templates/*.html'],
+                dest: 'tmp/{locale}/'
             },
             compare: {
                 reference: 'test/fixtures/en_US/i18n.json',
@@ -117,6 +121,7 @@ module.exports = function (grunt) {
         'locales:build',
         'locales:export',
         'locales:import',
+        'locales:localize',
         'nodeunit'
     ]);
 

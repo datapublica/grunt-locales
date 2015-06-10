@@ -16,6 +16,12 @@
       "test/fixtures/templates/profile.html"
     ]
   },
+  "Click to accept invitation": {
+    "value": "Click to accept invitation",
+    "files": [
+      "test/fixtures/templates/attributes.html"
+    ]
+  },
   "First name & last name": {
     "value": "First name & last name",
     "files": [
@@ -27,6 +33,12 @@
     "files": [
       "test/fixtures/scripts/profile.js",
       "test/fixtures/templates/profile.html"
+    ]
+  },
+  "I'm in": {
+    "value": "I'm in",
+    "files": [
+      "test/fixtures/templates/attributes.html"
     ]
   },
   "Oranges": {

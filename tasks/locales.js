@@ -232,7 +232,7 @@ module.exports = function (grunt) {
             if (this.options.normalizeSpaces) {
                 s = s && s.replace(/[\s\t]+/g, " ").replace(/^\s/, "").replace(/\s$/, "");
             }
-            return require('sanitizer').sanitize(s);
+            return this.sanitize(s, "").key;
         },
 
         localizeHTML: function(content, translations, callback) {
@@ -302,7 +302,6 @@ module.exports = function (grunt) {
                         key = $element.attr(attr) || $element.data(attr),
                         value,
                         sanitizedData;
-                    grunt.log.writeln(attr + " - " + key);
                     if (key && key !== "") {
                         // Decode the entities of the attribute value
                         // (cheerio default behavior):
@@ -833,15 +832,21 @@ module.exports = function (grunt) {
             this.done();
         },
 
-
         compare: function () {
             var that = this,
                 ignores = this.task.data.ignores && grunt.file.readJSON(this.task.data.ignores),
-                referenceMessages = grunt.file.readJSON(that.task.data.reference),
-                referenceLocale = that.getLocaleFromPath(that.task.data.reference);
+                referenceMessages = grunt.file.readJSON(this.task.data.reference),
+                referenceLocale = this.getLocaleFromPath(this.task.data.reference);
 
             grunt.log.writeln("reference locale: " + referenceLocale);
+            try {
+                grunt.log.writeln(this.getSourceFiles());
+            } catch (e) {
+                grunt.log.error(e);
+            }
+
             this.getSourceFiles().forEach(function (file) {
+                grunt.log.writeln("Processing: " + file);
                 var locale = that.getLocaleFromPath(file);
                 if (locale !== referenceLocale) {
                     var messages = grunt.file.readJSON(file);
@@ -880,6 +885,7 @@ module.exports = function (grunt) {
                     grunt.log.writeln();
                 }
             });
+
         }
     });
 

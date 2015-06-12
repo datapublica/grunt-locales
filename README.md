@@ -1,3 +1,11 @@
+
+This is a fork of [grunt-locales](https://github.com/blueimp/grunt-locales).  It adds the following features
+- generation of translated html from json catalogs and original source
+- comparison of catalog differences to detect possibly untranslated resources
+- ability to translate attributes such as placeholder, title, tooltip, etc...
+- an option to not strip non-standard html attributes during sanitation (in progress)
+- (minor) an option to preserve the original content in the generated catalog when an explicit localization string is used.
+
 # grunt locales
 
 > Update, build, import and export locales using grunt.
@@ -40,6 +48,7 @@
         - [options.csvEscape](#optionscsvescape)
         - [options.csvKeyLabel](#optionscsvkeylabel)
         - [options.csvExtraFields](#optionscsvextrafields)
+        - [options.preserveInnerHTMLForKey(#optionspreserveInnerHTMLForKey)
 - [HTML templates format](#html-templates-format)
     - [HTML template examples](#html-template-examples)
 - [JavaScript source files format](#javascript-source-files-format)
@@ -106,6 +115,15 @@ grunt.initConfig({
         'import': {
             src: 'js/locales/**/i18n.csv',
             dest: 'js/locales/{locale}/i18n.json'
+        },
+        localize: {
+            translations: "test/fixtures/{locale}/i18n.js",
+            src: ['test/fixtures/templates/*.html'],
+            dest: 'tmp/{locale}/'
+        },
+        compare: {
+            reference: 'test/fixtures/en_US/i18n.json',
+            src: 'test/fixtures/**/i18n-translated.json'
         }
     }
 });
@@ -140,6 +158,22 @@ Create (and overwrite) the JSON locale files from the CSV locale files:
 ```sh
 grunt locales:import
 ```
+
+#### Locales localize
+Generate (static) translated html from translations and source.  localization markers used
+during the process are stripped so they do not affect runtime.
+
+```sh
+grunt locales:localize
+```
+
+#### Locales compare
+compare json catalogs and expose suspicious similarities.  This is useful to func any untranslated resource.
+
+```sh
+grunt locales:localize
+```
+
 
 #### Watch tasks
 Install [grunt-contrib-watch](https://github.com/gruntjs/grunt-contrib-watch) to automatically update and build locales on file changes.
@@ -358,12 +392,20 @@ Default value: `['files']`
 
 Extra fields from the JSON translation objects which are added to each CSV export row as additional information.
 
+#### options.preserveInnerHTMLForKey
+Type: `Boolean`
+Default value: `false`
+
+If true, the value of generated catalog entries with an explicit localization string (`localize` attribute value) is set to the source element content, as opposed to the key.
+
 ## HTML templates format
 The templates should contain HTML content which can be parsed by [node-htmlparser](https://github.com/tautologistics/node-htmlparser).
 
-By default, the `locales:update` task parses all elements with `localize` attributes, as well as the same attributes with `-data` prefix. So elements with `data-localize` attribute will also be parsed, which allows strict HTML conformity.
+By default, the `locales:update` task parses all elements with `localize` attributes, as well as the same attributes with `data-` prefix. So elements with `data-localize` attribute will also be parsed, which allows strict HTML conformity.
 
 The localization string is taken from the attribute value. For the attributes `localize` and `data-localize`, the string will be taken from the content of the element if the attribute value is empty.
+
+Localized html attribute values such as input placeholders and tooltips are identified by the `localize-attributes` and `data-localize-attributes` attribute.  The value is a comma-separated list of attributes of the marked elements that need to be localized.  The value of each localized attribute is used as the localization string.
 
 ### HTML template examples
 
@@ -373,6 +415,13 @@ The localization string is taken from the attribute value. For the attributes `l
 
 ```html
 <div data-num="{{results.length}}" localize>There {num, plural, one{is <strong>one</strong> result} other{are <strong>#</strong> results}}.</div>
+```
+
+```html
+<div>
+   	<input type="text" title="text input" placeholder="Say something!" localize-attributes="placeholder,title">
+   	<button tooltip="Click to accept invitation" localize-attributes="tooltip" localize>I'm in</button>
+</div>
 ```
 
 ## JavaScript source files format

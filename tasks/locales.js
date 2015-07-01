@@ -21,9 +21,7 @@ module.exports = function (grunt) {
             localizeAttributes: [
                 'localize'
             ],
-            pluralizeAttributes: [
-                'pluralize'
-            ],
+            pluralizeAttributes: [],
             localizeMethodIdentifiers: [
                 'localize'
             ],

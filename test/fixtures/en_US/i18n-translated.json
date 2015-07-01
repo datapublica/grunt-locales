@@ -41,6 +41,18 @@
       "test/fixtures/templates/attributes.html"
     ]
   },
+  "No match found": {
+    "value": "No match found",
+    "files": [
+      "test/fixtures/templates/pluralize.html"
+    ]
+  },
+  "One result found": {
+    "value": "One result found",
+    "files": [
+      "test/fixtures/templates/pluralize.html"
+    ]
+  },
   "Oranges": {
     "value": "Oranges",
     "files": []
@@ -61,6 +73,12 @@
     "value": "text input",
     "files": [
       "test/fixtures/templates/attributes.html"
+    ]
+  },
+  "{count} results found": {
+    "value": "{count} results found",
+    "files": [
+      "test/fixtures/templates/pluralize.html"
     ]
   }
 }

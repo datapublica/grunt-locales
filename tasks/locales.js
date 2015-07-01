@@ -21,6 +21,9 @@ module.exports = function (grunt) {
             localizeAttributes: [
                 'localize'
             ],
+            pluralizeAttributes: [
+                'pluralize'
+            ],
             localizeMethodIdentifiers: [
                 'localize'
             ],
@@ -56,7 +59,8 @@ module.exports = function (grunt) {
                 return str.replace(/"/g, '""');
             },
             csvKeyLabel: 'ID',
-            csvExtraFields: ['files']
+            csvExtraFields: ['files'],
+            attributeDefaults: {}
         });
         if (!this.options.locales.length) {
             return grunt.fail.warn('No locales defined');
@@ -175,6 +179,14 @@ module.exports = function (grunt) {
             }, []);
         },
 
+        getPluralizationAttributes: function () {
+            return this.options.pluralizeAttributes.reduce(function(items, attr) {
+                items.push(attr);
+                items.push('data-' + attr);
+                return items;
+            }, []);
+        },
+
         extendMessages: function (messages, key, obj, update) {
             var originalMessage = messages[key];
             // grunt-locales v.4 and lower used a flat format
@@ -284,6 +296,30 @@ module.exports = function (grunt) {
                 });
             });
 
+            this.getPluralizationAttributes().forEach(function(attr) {
+                $("[" + attr + "]").each(function (index, element) {
+                    var $element = $(element),
+                        retain = false,
+                        attributes = [attr+"-zero", attr+"-one", attr+"-many"];
+
+                    attributes.forEach(function (attribute) {
+                        var value = $element.attr(attribute);
+                        if (value && value.length) {
+                            var translation = translations[value];
+                            if (typeof translation === 'string') {
+                                // todo sanitize translation
+                                $element.attr(attribute, translation);
+                            } else if (typeof translation === 'function') {
+                                $element.attr(attribute, translation({count: "{count}"}));
+                                retain = true;
+                            }
+                        }
+                    });
+
+                    if (!retain) $element.removeAttr(attr);
+                });
+            });
+
             callback($.html());
         },
 
@@ -356,6 +392,26 @@ module.exports = function (grunt) {
                 $('[' + attr + ']').each(function (index, element) {
                     var $element = $(element),
                         attributes = ($element.attr(attr) || $element.data(attr) || "").split(",");
+
+                    attributes.forEach(function (attr) {
+                        var value = $element.attr(attr);
+                        if (value && value.length) {
+                            var key = value;
+                            //grunt.log.writeln("attribute:" + key + "=" + value);
+                            that.extendMessages(messages, key, {
+                                value: value,
+                                files: [file]
+                            });
+                        }
+                    });
+                });
+            });
+
+            // record attributes to localize
+            this.getPluralizationAttributes().forEach(function (attr) {
+                $('[' + attr + ']').each(function (index, element) {
+                    var $element = $(element),
+                        attributes = [attr+"-zero", attr+"-one", attr+"-many"];
 
                     attributes.forEach(function (attr) {
                         var value = $element.attr(attr);

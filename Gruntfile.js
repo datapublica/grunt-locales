@@ -83,6 +83,7 @@ module.exports = function (grunt) {
             },
             localize: {
                 translations: "test/fixtures/{locale}/i18n.js",
+                attributes: ["always-localize"],
                 src: ['test/fixtures/templates/*.html'],
                 dest: 'tmp/{locale}/'
             },

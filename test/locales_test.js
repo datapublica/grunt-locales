@@ -98,7 +98,7 @@
 
         localize: function (test) {
             grunt.log.writeln("locales:localize test");
-            test.expect(6);
+            test.expect(8);
             _locales.forEach(function (locale) {
                 grunt.file.expand({
                     cwd: 'test/fixtures/' + locale + "/"

@@ -25,10 +25,16 @@ i18n["Hello {name}!"] = function(d){return "Hello "+v(d,"name")+"!"};
 
 i18n["I\x27m in"] = "Ich bin dabei";
 
+i18n["No match found"] = "Nichts gefunden";
+
+i18n["One result found"] = "Ein Ergebnis gefunden";
+
 i18n["Oranges"] = "Orangen";
 
 i18n["Say something!"] = "Sag etwas!";
 
 i18n["text input"] = "Texteingabe";
+
+i18n["{count} results found"] = function(d){return v(d,"count")+" Ergebnisse"};
 
 }());

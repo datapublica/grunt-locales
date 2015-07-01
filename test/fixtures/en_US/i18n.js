@@ -15,4 +15,6 @@ i18n["\x0a\x09\x3ch1\x3e{title}\x3c/h1\x3e\x0a\x09\x3cp\x3eWith whitespace.\x3c/
 
 i18n["Hello {name}!"] = function(d){return "Hello "+v(d,"name")+"!"};
 
+i18n["{count} results found"] = function(d){return v(d,"count")+" results found"};
+
 }());

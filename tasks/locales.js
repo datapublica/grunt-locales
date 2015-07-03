@@ -888,6 +888,7 @@ module.exports = function (grunt) {
 
         compare: function () {
             var that = this,
+                success = true,
                 ignores = this.task.data.ignores && grunt.file.readJSON(this.task.data.ignores),
                 referenceMessages = grunt.file.readJSON(this.task.data.reference),
                 referenceLocale = this.getLocaleFromPath(this.task.data.reference);
@@ -919,7 +920,8 @@ module.exports = function (grunt) {
 
                     grunt.log.writeln();
                     if (similarMessages.length) {
-                        grunt.log.writeln(similarMessages.length + " unchanged (and possibly untranslated) localized resources for " + locale.cyan);
+                        success = false;
+                        grunt.log.writeln((similarMessages.length + " unchanged (and possibly untranslated) localized resources for " + locale).red);
                         similarMessages.forEach(function (msg) {
                             grunt.log.writeln("    " + msg.value.cyan);
                         });
@@ -929,7 +931,8 @@ module.exports = function (grunt) {
 
                     grunt.log.writeln();
                     if (missingMessages.length) {
-                        grunt.log.writeln(similarMessages.length + " missing localized resources for " + locale.cyan);
+                        success = false;
+                        grunt.log.writeln((similarMessages.length + " missing localized resources for " + locale).red);
                         similarMessages.forEach(function (msg) {
                             grunt.log.writeln("    " + msg.value);
                         });
@@ -939,6 +942,7 @@ module.exports = function (grunt) {
                     grunt.log.writeln();
                 }
             });
+            this.done(success);
 
         }
     });

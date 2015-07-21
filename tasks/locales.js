@@ -911,8 +911,7 @@ module.exports = function (grunt) {
                             missingMessages.push(referenceMessages[msg]);
                         } else if (messages[msg].value === referenceMessages[msg].value) {
                             var igno = ignores[msg.toLowerCase()];
-                            if (igno && igno.indexOf(locale) >= 0) {
-                            } else {
+                            if (!igno || igno.indexOf(locale) < 0) {
                                 similarMessages.push(messages[msg]);
                             }
                         }

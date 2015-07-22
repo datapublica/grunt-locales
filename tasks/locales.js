@@ -297,7 +297,6 @@ module.exports = function (grunt) {
             this.getPluralizationAttributes().forEach(function(attr) {
                 $("[" + attr + "]").each(function (index, element) {
                     var $element = $(element),
-                        retain = false,
                         attributes = [attr+"-zero", attr+"-one", attr+"-many"];
 
                     attributes.forEach(function (attribute) {
@@ -309,12 +308,9 @@ module.exports = function (grunt) {
                                 $element.attr(attribute, translation);
                             } else if (typeof translation === 'function') {
                                 $element.attr(attribute, translation({count: "{count}"}));
-                                retain = true;
                             }
                         }
                     });
-
-                    if (!retain) $element.removeAttr(attr);
                 });
             });
 

@@ -29,7 +29,7 @@ module.exports = function (grunt) {
             jsFileRegExp: /\.js$/,
             // Matches the locale name in a file path,
             // e.g. "en_US" in js/locale/en_US/i18n.json:
-            localeRegExp: /\w+(?=\/[^\/]+$)/,
+            localeRegExp: /[0-9a-zA-Z-_]+(?=\/[^\/]+$)/,
             localePlaceholder: '{locale}',
             localeName: 'i18n',
             // Set to true to wrap static translation strings with a function:
@@ -921,7 +921,7 @@ module.exports = function (grunt) {
                             grunt.log.writeln("    " + msg.value.cyan);
                         });
                     } else {
-                        grunt.log.writeln("All messages appear to have been translated for " + locale.bold);
+                        grunt.log.writeln("All messages appear to have been translated for " + locale.cyan);
                     }
 
                     grunt.log.writeln();
@@ -932,7 +932,7 @@ module.exports = function (grunt) {
                             grunt.log.writeln("    " + msg.value);
                         });
                     } else {
-                        grunt.log.writeln("All messages appear to have been generated for " + locale.bold);
+                        grunt.log.writeln("All messages appear to have been generated for " + locale.cyan);
                     }
                     grunt.log.writeln();
                 }

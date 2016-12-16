@@ -37,9 +37,9 @@ module.exports = function (grunt) {
             // Purge obsolete locale messages by default:
             purgeLocales: true,
             messageFormatLocaleFile:
-                __dirname + '/../node_modules/messageformat/locale/{locale}.js',
+              require('path').resolve(require.resolve('messageFormat') ,'../locale/{locale}.js'),
             messageFormatSharedFile:
-                __dirname + '/../node_modules/messageformat/lib/messageformat.include.js',
+              require('path').resolve(require.resolve('messageFormat') ,'../lib/messageformat.include.js'),
             localeTemplate: __dirname + '/../i18n.js.tmpl',
             // Allow ftp, http(s), mailto, anchors
             // and messageformat variables (href="{url}"):
